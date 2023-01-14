@@ -1,0 +1,24 @@
+.entropy-ribbon {
+    background-color: linear-gradient(306deg, rgba(255,0,0,1) 0%, rgba(0,89,255,1) 100%);
+    background: linear-gradient(306deg, rgba(255,0,0,1) 0%, rgba(0,89,255,1) 100%);
+    min-height: 20px;
+}
+
+.entropy-modal {
+    all: unset;
+    font-family: Helvetica Neue;
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    display: block;
+    position: fixed;
+    z-index: 100000;
+    right: 0;
+    top: 0;
+    width: 220px;
+    height: 20px;
+    overflow: auto;
+    background-color: linear-gradient(306deg, rgba(255,0,0,1) 0%, rgba(0,89,255,1) 100%);
+    animation-name: modalopen;
+    animation-duration: 0.5s;
+}
