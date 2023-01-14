@@ -5,11 +5,12 @@
 // See https://developer.chrome.com/extensions/background_pages
 import { ENTROPY_DECAY_FREQ, ENTROPY_DECAY_RATE } from "./constants";
 import categories from './youtube_categories.json' assert {type: 'json'};
-import categories from './youtube_categories.json' assert {type: 'json'};
+import correlation from './correlation.json' assert {type: 'json'};
 
 chrome.storage.local.clear()
 chrome.storage.local.set({
-  entropy: 0
+  entropy: 0,
+  category: ""
 })
 
 // Entropy incrementer to LS
@@ -40,23 +41,22 @@ chrome.tabs.onUpdated.addListener(
             videoDetails['title'] = resp['items'][0]['snippet']['title']
             videoDetails['description'] = resp['items'][0]['snippet']['description']
             videoDetails['category'] = categories[resp['items'][0]['snippet']['categoryId']]
-            
-            
-            let videoCategory = videoDetails['category']
-            //TODO add check for empty category
 
 
-      
-            chrome.storage.local.get("entropy")
-              .then(function (curr_entropy) {
-                // console.log('data', curr_entropy);
+            let newCategory = videoDetails['category']
+
+            chrome.storage.local.get("category")
+              .then(function (old_category) {
+                let oldCategory = old_category.category
+
+                let similarity = correlation[newCategory][oldCategory === "" ? newCategory : oldCategory]
+
                 chrome.storage.local.set({
-                  // TODO: Set increament based on diffence
-                  entropy: parseFloat(curr_entropy.entropy) + 0.5
+                  category: newCategory,
+                  entropy: (1 - similarity)
                 })
               })
               .catch(function (reason) {
-                // console.log('reason', reason);
                 chrome.storage.local.set({
                   entropy: 0.5
                 })
@@ -78,7 +78,6 @@ setInterval(function () {
       })
     })
     .catch(function (reason) {
-      // console.log(reason);
       chrome.storage.local.set({
         entropy: 0
       })
