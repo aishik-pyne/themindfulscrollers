@@ -1,13 +1,10 @@
 
 const init = function () {
-    // const entropyRibbon = document.createElement('div');
-    // entropyRibbon.className = "entropy-ribbon";
-    // entropyRibbon.id = "entropy-ribbon";
-    // document.body.prepend(entropyRibbon);
+
 
     let modal = document.createElement('div');
-    modal.setAttribute("id", "modalMenu");
-    // modal.classList.add("entropy-modal");
+    modal.setAttribute("id", "entropy-modal");
+    modal.classList.add("entropy-modal");
     modal.style.cssText = `
         all: unset;
         font-family: Helvetica Neue;
@@ -26,8 +23,9 @@ const init = function () {
         animation-name: modalopen;
         animation-duration: 0.5s;
     `;
-    let body = document.querySelector('body');
 
+
+    let body = document.querySelector('body');
     body.insertBefore(modal, body.firstChild);
 
 }
