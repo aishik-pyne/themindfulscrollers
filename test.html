@@ -7,11 +7,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"
+        integrity="sha512-zInFF17qBFVvvvFpIfeBzo7Tj7+rQxLeTJDmbxjBz5/zIr89YVbTNelNhdTT+/DCrxoVzBeUPVFJsczKbB7sew=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
+<style>
+    #demo {
+        background-color: green;
+        height: 20px;
+    }
+</style>
 
 <body>
-    <p id="demo"></p>
+    <h1 id="demo"></h1>
+    <button onclick="changeColor()">Click me</button>
+    <button onclick="setColor()">Set Color</button>
 </body>
 <script type="module" src="fetchVideoDetails.js"></script>
+
+<script>
+
+    window.addEventListener("storage", async () => {
+        let bar = document.getElementById("demo")
+        f = chroma.scale(colors = ["0059ff", "ff0000"])
+        console.log("IM N")
+        let val = localStorage.getItem("simValue");
+
+        while (val >= 0) {
+            colorArray = f(val)['_rgb']
+            let rValue = colorArray[0]
+            let gValue = colorArray[1]
+            let bValue = colorArray[2]
+            console.log(colorArray)
+            await sleep(60)
+            bar.style.backgroundColor = `rgb(${rValue}, ${gValue}, ${bValue})`
+
+            val -= 0.01
+        }
+    })
+    async function setColor() {
+
+
+        console.log("check")
+        localStorage.setItem("simValue", 1)
+        window.dispatchEvent(new Event('storage'))
+        // let bar = document.getElementById("demo")
+        // bar.style.backgroundColor = `rgb(255,0,0)`
+
+    }
+    async function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+
+    async function changeColor() {
+
+        // let ogColor = getComputedStyle(bar)
+        // console.log(ogColor['background-color'])
+
+        // const re = new RegExp('[0-9, ]+', 'g')
+        // let colorString = re.exec(ogColor['background-color'])[0].split(',').map(
+        //     item => {
+        //         return parseInt(item, 10)
+        //     }
+        // )
+        // let rValue = colorString[0]
+        // let gValue = colorString[1]
+        // let bValue = colorString[2]
+
+        // for (let i = 0; i <= 100; i++) {
+        //     await sleep(60)
+        //     console.log(i / 100)
+        //     bar.style.backgroundColor = `rgb(${rValue * (1 - (i / 100))}, ${gValue * (i / 100)}, ${bValue * (i / 100)})`
+        // }
+        // simValue = 0.1
+
+        while (simValue >= 0) {
+            colorArray = f(simValue)['_rgb']
+            let rValue = colorArray[0]
+            let gValue = colorArray[1]
+            let bValue = colorArray[2]
+            await sleep(60)
+            console.log(colorArray)
+            bar.style.backgroundColor = `rgb(${rValue}, ${gValue}, ${bValue})`
+
+            simValue -= 0.01
+        }
+
+        // for (let i = simValue * 100; i >= 0; i--) {
+        // }
+    }
+</script>
 
 </html>
