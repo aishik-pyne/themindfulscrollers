@@ -25,6 +25,7 @@
 
     },
     "web_accessible_resources": [
+        "correlation.json",
         "ribbon/ribbon.html",
         "ribbon/ribbon.css"
     ]
