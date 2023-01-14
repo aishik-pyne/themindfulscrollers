@@ -10,7 +10,8 @@ import correlation from './correlation.json' assert {type: 'json'};
 chrome.storage.local.clear()
 chrome.storage.local.set({
   entropy: 0,
-  category: ""
+  category: "",
+  trackHistory: []
 })
 
 // Entropy incrementer to LS
@@ -44,6 +45,7 @@ chrome.tabs.onUpdated.addListener(
 
 
             let newCategory = videoDetails['category']
+            console.log(newCategory)
 
             chrome.storage.local.get("category")
               .then(function (old_category) {
@@ -56,11 +58,24 @@ chrome.tabs.onUpdated.addListener(
                   entropy: (1 - similarity)
                 })
               })
+
+            chrome.storage.local.get("trackHistory")
+              .then(function (trackHistory) {
+                let historyItems = trackHistory.trackHistory
+                historyItems.push({ category: newCategory, timestamp: Date.now(), entropy: similarity })
+                console.log(historyItems)
+
+                chrome.storage.local.set({
+                  trackHistory: historyItems
+                })
+              })
+
               .catch(function (reason) {
                 chrome.storage.local.set({
                   entropy: 0.5
                 })
               })
+
           }
         )
 
