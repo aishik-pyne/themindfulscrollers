@@ -1,112 +1,66 @@
 'use strict';
 
 import './popup.css';
+import Chart from 'chart.js/auto';
 
-(function () {
-  // We will make use of Storage API to get and store `count` value
-  // More information on Storage API can we found at
-  // https://developer.chrome.com/extensions/storage
+const ctx = document.getElementById('entropyHistory');
 
-  // To get storage access, we have to mention it in `permissions` property of manifest.json file
-  // More information on Permissions can we found at
-  // https://developer.chrome.com/extensions/declare_permissions
-  const counterStorage = {
-    get: (cb) => {
-      chrome.storage.sync.get(['count'], (result) => {
-        cb(result.count);
-      });
-    },
-    set: (value, cb) => {
-      chrome.storage.sync.set(
-        {
-          count: value,
+let chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: new Array(51).fill(0),
+    datasets: [{
+      label: 'Entropy',
+      data: new Array(51).fill(0),
+      borderWidth: 1,
+      tension: 0.3,
+      fill: false
+    }]
+  },
+  options: {
+    scales: {
+      x: {
+        ticks: {
+          display: false,
         },
-        () => {
-          cb();
+        title: {
+          display: true,
+          text: 'Time'
         }
-      );
-    },
-  };
-
-  function setupCounter(initialValue = 0) {
-    document.getElementById('counter').innerHTML = initialValue;
-
-    document.getElementById('incrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'INCREMENT',
-      });
-    });
-
-    document.getElementById('decrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'DECREMENT',
-      });
-    });
-  }
-
-  function updateCounter({ type }) {
-    counterStorage.get((count) => {
-      let newCount;
-
-      if (type === 'INCREMENT') {
-        newCount = count + 1;
-      } else if (type === 'DECREMENT') {
-        newCount = count - 1;
-      } else {
-        newCount = count;
-      }
-
-      counterStorage.set(newCount, () => {
-        document.getElementById('counter').innerHTML = newCount;
-
-        // Communicate with content script of
-        // active tab by sending a message
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          const tab = tabs[0];
-
-          chrome.tabs.sendMessage(
-            tab.id,
-            {
-              type: 'COUNT',
-              payload: {
-                count: newCount,
-              },
-            },
-            (response) => {
-              console.log('Current count value passed to contentScript file');
-            }
-          );
-        });
-      });
-    });
-  }
-
-  function restoreCounter() {
-    // Restore count value
-    counterStorage.get((count) => {
-      if (typeof count === 'undefined') {
-        // Set counter value as 0
-        counterStorage.set(0, () => {
-          setupCounter(0);
-        });
-      } else {
-        setupCounter(count);
-      }
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', restoreCounter);
-
-  // Communicate with background file by sending a message
-  chrome.runtime.sendMessage(
-    {
-      type: 'GREETINGS',
-      payload: {
-        message: 'Hello, my name is Pop. I am from Popup.',
       },
-    },
-    (response) => {
-      console.log(response.message);
+      y: {
+        beginAtZero: true,
+        suggestedMax: 1,
+        suggestedMin: 0
+
+      }
     }
-  );
-})();
+  }
+});
+
+function addData(chart, label, data) {
+  console.log("HERE");
+  chart.data.labels.push(label);
+  chart.data.datasets.forEach((dataset) => {
+    dataset.data.push(data);
+  });
+  chart.update();
+}
+
+function removeData(chart) {
+  console.log("HERE");
+  chart.data.labels.shift();
+  chart.data.datasets.forEach((dataset) => {
+      dataset.data.shift();
+  });
+  chart.update();
+}
+
+setInterval(function name() {
+  chrome.storage.local.get("entropy")
+  .then(function(data) {
+    removeData(chart)
+    addData(chart, data.entropy, data.entropy)
+  })
+ 
+}, 800)

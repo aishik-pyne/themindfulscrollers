@@ -44,37 +44,48 @@ chrome.tabs.onUpdated.addListener(
             videoDetails['category'] = categories[resp['items'][0]['snippet']['categoryId']]
 
 
-            let newCategory = videoDetails['category']
-            console.log(newCategory)
+            let newCategory = videoDetails['category'];
+            
+            console.log(`Fetch video category: ${newCategory}`)
 
-            chrome.storage.local.get("category")
-              .then(function (old_category) {
-                let oldCategory = old_category.category
+            chrome.storage.local.get(["category", "entropy"])
+              .then(function (data) {
+                let oldCategory = data.category
+                let oldEntropy = data.entropy
 
+                console.log(`Old cat ${oldCategory} new cat ${newCategory}`);
+                
                 let similarity = correlation[newCategory][oldCategory === "" ? newCategory : oldCategory]
+                console.log(`Similarity is ${similarity}`);
 
                 chrome.storage.local.set({
                   category: newCategory,
-                  entropy: (1 - similarity)
-                })
+                  entropy: oldEntropy + (1 - similarity)
+                }).catch(reason => console.error(`Failing to store entropy in LS`))
+
+                chrome.storage.local.get("trackHistory")
+                  .then(function (data) {
+                    let historyItems = data.trackHistory
+                    historyItems.push({ category: newCategory, timestamp: Date.now(), entropy: similarity })
+                    // console.log(historyItems)
+
+                    chrome.storage.local.set({
+                      trackHistory: historyItems
+                    })
+                  })
+                  .catch(function (reason) {
+                    console.error(`Failed to update trackHistory ${reason}`);
+                  })
               })
-
-            chrome.storage.local.get("trackHistory")
-              .then(function (trackHistory) {
-                let historyItems = trackHistory.trackHistory
-                historyItems.push({ category: newCategory, timestamp: Date.now(), entropy: similarity })
-                console.log(historyItems)
-
-                chrome.storage.local.set({
-                  trackHistory: historyItems
-                })
-              })
-
               .catch(function (reason) {
+                console.error(`Failed to update entropy ${reason}`);
                 chrome.storage.local.set({
                   entropy: 0.5
                 })
               })
+
+            
+              
 
           }
         )
@@ -86,10 +97,23 @@ chrome.tabs.onUpdated.addListener(
 // Entropy decayer to LS
 setInterval(function () {
   chrome.storage.local.get('entropy')
-    .then(function (curr_entropy) {
-      console.log("Current Entropy", curr_entropy.entropy);
+    .then(function (data) {
+      console.log("Current Entropy", data.entropy);
+      let newEntropy = Math.max(0, parseFloat(data.entropy) - ENTROPY_DECAY_RATE)
+      chrome.tabs.query({active: true, lastFocusedWindow: true}, function (tabs) {
+        if (tabs.length >0) {
+          chrome.tabs.sendMessage(
+            tabs[0].id,
+            {
+              type: 'ENTROPY',
+              entropy: newEntropy
+            }
+          )
+          .catch(()=> chrome.runtime.lastError)
+        }
+      })
       chrome.storage.local.set({
-        entropy: Math.max(0, parseFloat(curr_entropy.entropy) - ENTROPY_DECAY_RATE)
+        entropy: Math.max(0, parseFloat(data.entropy) - ENTROPY_DECAY_RATE)
       })
     })
     .catch(function (reason) {
